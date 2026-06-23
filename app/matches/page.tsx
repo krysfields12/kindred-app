@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const matches = [
   {
+    slug: "jordan",
     name: "Jordan",
     transition: "Starting a Business",
     location: "Columbia, MD",
@@ -10,6 +11,7 @@ const matches = [
     matchReasons: ["Starting a Business", "Entrepreneurship", "Accountability"],
   },
   {
+    slug: "sarah",
     name: "Sarah",
     transition: "Career Change",
     location: "Baltimore, MD",
@@ -18,6 +20,7 @@ const matches = [
     matchReasons: ["Career Growth", "Technology", "Personal Growth"],
   },
   {
+    slug: "mike",
     name: "Mike",
     transition: "New to a City",
     location: "Ellicott City, MD",
@@ -79,12 +82,12 @@ export default function MatchesPage() {
                 </div>
               </div>
 
-              <Link
-                  href="/matches/jordan"
-                  className="block w-full bg-black text-white px-4 py-3 rounded-lg text-center"
-                  >
-                  View Profile
-              </Link>
+           <Link
+              href={`/matches/${match.slug}`}
+              className="block w-full bg-black text-white px-4 py-3 rounded-lg text-center"
+            >
+              View Profile
+          </Link>
             </div>
           ))}
         </div>
