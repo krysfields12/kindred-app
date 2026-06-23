@@ -12,6 +12,7 @@ export default function Navbar() {
           <Link href="/">Home</Link>
           <Link href="/profile">Profile</Link>
           <Link href="/matches">Matches</Link>
+          <Link href="/messages">Messages</Link>
         </div>
       </div>
     </nav>
