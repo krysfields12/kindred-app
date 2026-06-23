@@ -5,6 +5,7 @@
     - Interests
     - Bio
 */
+import Link from "next/link";
 
 export default function ProfilePage() {
   return (
@@ -55,9 +56,12 @@ export default function ProfilePage() {
             className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white"
           />
 
-          <button className="bg-black text-white px-6 py-3 rounded-lg">
+          <Link
+            href="/matches"
+            className="bg-black text-white px-6 py-3 rounded-lg"
+        >
             Save Profile
-          </button>
+          </Link>
         </form>
       </section>
     </main>
