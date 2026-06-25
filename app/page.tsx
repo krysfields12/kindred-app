@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignUpButton } from "@clerk/nextjs";
 
 export default function Home() {
   return (
@@ -10,12 +11,11 @@ export default function Home() {
           Find community, accountability, and belonging through life's transitions.
         </p>
 
-        <Link
-          href="/profile"
-          className="bg-black text-white px-6 py-3 rounded-lg"
-        >
-          Get Started
-        </Link>
+        <SignUpButton mode="modal">
+        <button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
+          Find Your People
+        </button>
+    </SignUpButton>
       </section>
 
       <section className="max-w-3xl mx-auto text-center">
