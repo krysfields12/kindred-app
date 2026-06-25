@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+
 
 const groups = [
   {
+    slug: "entrepreneurs",
     name: "Aspiring Entrepreneurs Circle",
     description:
       "For people building businesses, side projects, or startup ideas while balancing everyday life.",
@@ -11,6 +14,7 @@ const groups = [
     goal: "Build businesses with accountability and support",
   },
   {
+    slug: "career-changers",
     name: "Career Changers Circle",
     description:
       "For people transitioning into new careers and looking for encouragement, resources, and connection.",
@@ -18,6 +22,7 @@ const groups = [
     goal: "Navigate career change together",
   },
   {
+    slug: "new-to-city",
     name: "New-to-City Circle",
     description:
       "For people who recently moved and want to build community in a new place.",
@@ -25,6 +30,7 @@ const groups = [
     goal: "Build local friendships and belonging",
   },
   {
+    slug: "new-parents",
     name: "New Parents Circle",
     description:
       "For first-time parents looking for support, shared experiences, and community.",
@@ -73,13 +79,22 @@ export default function GroupsPage() {
                   {joined ? group.members + 1 : group.members} members
                 </p>
 
+                <div className="flex gap-3">
                 <button
-                  type="button"
-                  onClick={() => handleJoin(group.name)}
-                  className="bg-black text-white px-6 py-3 rounded-lg"
+                    type="button"
+                    onClick={() => handleJoin(group.name)}
+                    className="bg-black text-white px-6 py-3 rounded-lg"
                 >
-                  {joined ? "Joined" : "Join Group"}
+                    {joined ? "Joined" : "Join Group"}
                 </button>
+
+                <Link
+                    href={`/groups/${group.slug}`}
+                    className="border border-gray-600 px-6 py-3 rounded-lg text-center"
+                >
+                    View Group
+                </Link>
+                </div>
               </div>
             );
           })}
