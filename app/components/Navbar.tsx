@@ -13,6 +13,7 @@ export default function Navbar() {
           <Link href="/profile">Profile</Link>
           <Link href="/matches">Matches</Link>
           <Link href="/messages">Messages</Link>
+          <Link href="/groups">Groups</Link>
         </div>
       </div>
     </nav>
