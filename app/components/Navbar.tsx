@@ -31,12 +31,11 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           <Show when="signed-out">
-            <SignInButton />
-            <SignUpButton>
-              <button className="bg-black text-white px-4 py-2 rounded-lg">
-                Get Started
-              </button>
-            </SignUpButton>
+              <SignUpButton forceRedirectUrl="/onboarding">
+                <button className="bg-black text-white px-4 py-2 rounded-lg">
+                  Get Started
+                </button>
+        </SignUpButton>
           </Show>
 
           <Show when="signed-in">

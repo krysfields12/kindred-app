@@ -11,10 +11,10 @@ export default function Home() {
           Find community, accountability, and belonging through life's transitions.
         </p>
 
-        <SignUpButton mode="modal">
-        <button className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-          Find Your People
-        </button>
+      <SignUpButton forceRedirectUrl="/onboarding">
+          <button className="bg-black text-white px-6 py-3 rounded-lg">
+            Find Your People
+          </button>
     </SignUpButton>
       </section>
 
