@@ -9,21 +9,34 @@ import {
 export default function Navbar() {
   return (
     <nav className="border-b border-gray-800 px-6 py-4">
-      <div className="max-w-5xl mx-auto flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold">
-          Kindred
-        </Link>
-
-        <div className="flex items-center gap-6">
-          <Link href="/">Home</Link>
-          <Link href="/profile">Profile</Link>
-          <Link href="/matches">Matches</Link>
-          <Link href="/messages">Messages</Link>
-          <Link href="/groups">Groups</Link>
+      <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="text-xl font-bold">
+            Kindred
+          </Link>
 
           <Show when="signed-out">
+            <Link href="/">Home</Link>
+            <Link href="/about">About</Link>
+            <Link href="/how-it-works">How it Works</Link>
+          </Show>
+
+          <Show when="signed-in">
+            <Link href="/">Home</Link>
+            <Link href="/matches">Matches</Link>
+            <Link href="/messages">Messages</Link>
+            <Link href="/groups">Groups</Link>
+          </Show>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Show when="signed-out">
             <SignInButton />
-            <SignUpButton />
+            <SignUpButton>
+              <button className="bg-black text-white px-4 py-2 rounded-lg">
+                Get Started
+              </button>
+            </SignUpButton>
           </Show>
 
           <Show when="signed-in">
