@@ -1,11 +1,4 @@
-/* add a simple form with: 
-    - Location
-    - Life Transition
-    - Goals
-    - Interests
-    - Bio
-*/
-import Link from "next/link";
+import { saveProfile } from "@/app/actions/profile";
 
 export default function ProfilePage() {
   return (
@@ -17,21 +10,13 @@ export default function ProfilePage() {
           Tell Kindred about your journey so we can help you find people on a similar path.
         </p>
 
-        <form className="space-y-5">
-          <input
-            type="text"
-            placeholder="Name"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white"
-          />
+        <form action={saveProfile} className="space-y-5">
+          <input name="name" type="text" placeholder="Name" required className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white" />
 
-          <input
-            type="text"
-            placeholder="Location"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white"
-          />
+          <input name="location" type="text" placeholder="Location" required className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white" />
 
-          <select className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white">
-            <option>Select your life transition</option>
+          <select name="lifeTransition" required className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white">
+            <option value="">Select your life transition</option>
             <option>Career Change</option>
             <option>Starting a Business</option>
             <option>New to a City</option>
@@ -39,29 +24,15 @@ export default function ProfilePage() {
             <option>New Parent</option>
           </select>
 
-          <input
-            type="text"
-            placeholder="Goals, e.g. build community, stay accountable"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white"
-          />
+          <input name="goals" type="text" placeholder="Goals, e.g. build community, stay accountable" required className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white" />
 
-          <input
-            type="text"
-            placeholder="Interests, e.g. entrepreneurship, fitness, tech"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white"
-          />
+          <input name="interests" type="text" placeholder="Interests, e.g. entrepreneurship, fitness, tech" required className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white" />
 
-          <textarea
-            placeholder="Short bio"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white"
-          />
+          <textarea name="bio" placeholder="Short bio" className="w-full rounded-lg border border-gray-300 px-4 py-3 text-white" />
 
-          <Link
-            href="/matches"
-            className="bg-black text-white px-6 py-3 rounded-lg"
-        >
+          <button type="submit" className="bg-black text-white px-6 py-3 rounded-lg">
             Save Profile
-          </Link>
+          </button>
         </form>
       </section>
     </main>
