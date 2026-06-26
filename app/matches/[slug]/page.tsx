@@ -52,7 +52,7 @@ export default async function MatchProfilePage({
             </ul>
           </section>
 
-          <ConnectButton />
+         <ConnectButton receiverId={profile.clerkUserId} receiverName={profile.name} />
         </div>
       </section>
     </main>
