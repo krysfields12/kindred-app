@@ -1,36 +1,26 @@
 import MatchCard from "@/app/components/MatchCard";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-const matches = [
-  {
-    slug: "jordan",
-    name: "Jordan",
-    transition: "Starting a Business",
-    location: "Columbia, MD",
-    goals: ["Launch a business", "Stay accountable"],
-    interests: ["Entrepreneurship", "AI", "Personal Growth"],
-    matchReasons: ["Starting a Business", "Entrepreneurship", "Accountability"],
-  },
-  {
-    slug: "sarah",
-    name: "Sarah",
-    transition: "Career Change",
-    location: "Baltimore, MD",
-    goals: ["Build a network", "Find mentors"],
-    interests: ["Technology", "Reading", "Career Growth"],
-    matchReasons: ["Career Growth", "Technology", "Personal Growth"],
-  },
-  {
-    slug: "mike",
-    name: "Mike",
-    transition: "New to a City",
-    location: "Ellicott City, MD",
-    goals: ["Build friendships", "Explore the city"],
-    interests: ["Hiking", "Coffee Shops", "Local Events"],
-    matchReasons: ["Building Community", "Local Connection", "Shared Interests"],
-  },
-];
+export default async function MatchesPage() {
+  const { userId } = await auth();
 
-export default function MatchesPage() {
+  if (!userId) {
+    redirect("/");
+  }
+
+  const profiles = await prisma.profile.findMany({
+    where: {
+      clerkUserId: {
+        not: userId,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
   return (
     <main className="min-h-screen px-6 py-16">
       <section className="max-w-5xl mx-auto">
@@ -40,11 +30,34 @@ export default function MatchesPage() {
           People navigating similar journeys, goals, and life transitions.
         </p>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {matches.map((match) => (
-            <MatchCard key={match.slug} match={match} />
-          ))}
-        </div>
+        {profiles.length === 0 ? (
+          <div className="rounded-xl border border-gray-700 bg-neutral-900 p-6">
+            <h2 className="text-2xl font-bold mb-2">No matches yet</h2>
+            <p className="text-gray-300">
+              As more people join Kindred, you’ll see profiles here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {profiles.map((profile) => (
+              <MatchCard
+                key={profile.id}
+                match={{
+                  slug: profile.id,
+                  name: profile.name,
+                  transition: profile.transition ?? "Life Transition",
+                  location: profile.location ?? "Location not provided",
+                  goals: profile.goals,
+                  interests: profile.interests,
+                  matchReasons: [
+                    profile.transition ?? "Shared Journey",
+                    ...profile.interests.slice(0, 2),
+                  ],
+                }}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

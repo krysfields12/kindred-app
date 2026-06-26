@@ -1,18 +1,20 @@
-"use client";
 import Link from "next/link";
-import { profiles } from "@/app/data/profiles";
-import { notFound, useParams } from "next/navigation";
-import { useState } from "react";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import ConnectButton from "@/app/components/ConnectButton";
 
+export default async function MatchProfilePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
 
-type ProfileSlug = keyof typeof profiles;
-
-
-export default function MatchProfilePage() {
-  const params = useParams();
-  const slug = params.slug as string;
-  const profile = profiles[slug as ProfileSlug];
-  const [connected, setConnected] = useState(false);
+  const profile = await prisma.profile.findUnique({
+    where: {
+      id: slug,
+    },
+  });
 
   if (!profile) {
     notFound();
@@ -33,20 +35,6 @@ export default function MatchProfilePage() {
           <p className="text-lg mb-8">{profile.bio}</p>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-3">Why You Match</h2>
-            <div className="flex flex-wrap gap-2">
-              {profile.matchReasons.map((reason) => (
-                <span
-                  key={reason}
-                  className="rounded-full border border-gray-600 px-3 py-1 text-sm text-gray-300"
-                >
-                  {reason}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-8">
             <h2 className="text-2xl font-bold mb-3">Goals</h2>
             <ul className="list-disc list-inside text-gray-300">
               {profile.goals.map((goal) => (
@@ -64,12 +52,7 @@ export default function MatchProfilePage() {
             </ul>
           </section>
 
-          <button
-            onClick={() => setConnected(true)}
-            className="bg-black text-white px-6 py-3 rounded-lg"
-          >
-            {connected ? "Connection Sent" : "Connect"}
-        </button>
+          <ConnectButton />
         </div>
       </section>
     </main>
