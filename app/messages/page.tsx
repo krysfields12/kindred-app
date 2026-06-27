@@ -32,6 +32,18 @@ export default async function MessagesPage() {
     },
   });
 
+  const messages = await prisma.message.findMany({
+    where: {
+      OR: [
+        { senderId: userId },
+        { receiverId: userId },
+      ],
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
   return (
     <main className="min-h-screen px-6 py-16">
       <section className="max-w-3xl mx-auto">
@@ -50,19 +62,56 @@ export default async function MessagesPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {profiles.map((profile) => (
-              <Link
-                key={profile.id}
-                href={`/messages/${profile.id}`}
-                className="block rounded-xl border border-gray-700 bg-neutral-900 p-6 hover:bg-neutral-800"
-              >
-                <h2 className="text-2xl font-bold mb-1">{profile.name}</h2>
-                <p className="text-gray-400 mb-2">
-                  {profile.transition} • {profile.location}
-                </p>
-                <p className="text-gray-300">Open conversation</p>
-              </Link>
-            ))}
+            {profiles.map((profile) => {
+              const conversationMessages = messages.filter(
+                (message) =>
+                  (message.senderId === userId &&
+                    message.receiverId === profile.clerkUserId) ||
+                  (message.senderId === profile.clerkUserId &&
+                    message.receiverId === userId)
+              );
+
+              const latestMessage = conversationMessages[0];
+
+              const unreadCount = conversationMessages.filter(
+                (message) =>
+                  message.receiverId === userId && message.isRead === false
+              ).length;
+
+              return (
+                <Link
+                  key={profile.id}
+                  href={`/messages/${profile.id}`}
+                  className="block rounded-xl border border-gray-700 bg-neutral-900 p-6 hover:bg-neutral-800"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-1">
+                        {profile.name}
+                      </h2>
+
+                      <p className="text-gray-400 mb-3">
+                        {profile.transition} • {profile.location}
+                      </p>
+
+                      <p className="text-gray-300">
+                        {latestMessage
+                          ? latestMessage.senderId === userId
+                            ? `You: ${latestMessage.content}`
+                            : latestMessage.content
+                          : "No messages yet. Start the conversation."}
+                      </p>
+                    </div>
+
+                    {unreadCount > 0 && (
+                      <span className="rounded-full bg-white text-black px-3 py-1 text-sm font-semibold">
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
