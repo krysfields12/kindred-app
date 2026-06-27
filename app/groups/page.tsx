@@ -1,8 +1,8 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { joinGroup } from "@/app/actions/groups";
 
 const groups = [
   {
@@ -39,14 +39,20 @@ const groups = [
   },
 ];
 
-export default function GroupsPage() {
-  const [joinedGroups, setJoinedGroups] = useState<string[]>([]);
+export default async function GroupsPage() {
+  const { userId } = await auth();
 
-  function handleJoin(groupName: string) {
-    if (joinedGroups.includes(groupName)) return;
-
-    setJoinedGroups([...joinedGroups, groupName]);
+  if (!userId) {
+    redirect("/");
   }
+
+  const memberships = await prisma.groupMember.findMany({
+    where: {
+      userId,
+    },
+  });
+
+  const joinedGroupSlugs = memberships.map((membership) => membership.groupSlug);
 
   return (
     <main className="min-h-screen px-6 py-16">
@@ -59,11 +65,11 @@ export default function GroupsPage() {
 
         <div className="grid gap-6 md:grid-cols-2">
           {groups.map((group) => {
-            const joined = joinedGroups.includes(group.name);
+            const joined = joinedGroupSlugs.includes(group.slug);
 
             return (
               <div
-                key={group.name}
+                key={group.slug}
                 className="rounded-xl border border-gray-700 bg-neutral-900 p-6"
               >
                 <h2 className="text-2xl font-bold mb-3">{group.name}</h2>
@@ -80,20 +86,32 @@ export default function GroupsPage() {
                 </p>
 
                 <div className="flex gap-3">
-                <button
-                    type="button"
-                    onClick={() => handleJoin(group.name)}
-                    className="bg-black text-white px-6 py-3 rounded-lg"
-                >
-                    {joined ? "Joined" : "Join Group"}
-                </button>
+                  {joined ? (
+                    <span className="rounded-lg border border-gray-700 bg-gray-900 px-6 py-3">
+                      Joined
+                    </span>
+                  ) : (
+                    <form
+                      action={async () => {
+                        "use server";
+                        await joinGroup(group.slug);
+                      }}
+                    >
+                      <button
+                        type="submit"
+                        className="bg-black text-white px-6 py-3 rounded-lg"
+                      >
+                        Join Group
+                      </button>
+                    </form>
+                  )}
 
-                <Link
+                  <Link
                     href={`/groups/${group.slug}`}
                     className="border border-gray-600 px-6 py-3 rounded-lg text-center"
-                >
+                  >
                     View Group
-                </Link>
+                  </Link>
                 </div>
               </div>
             );

@@ -55,3 +55,24 @@ model Message {
 
   createdAt  DateTime @default(now())
 }
+
+model GroupMember {
+  id        String   @id @default(cuid())
+
+  groupSlug String
+  userId    String
+
+  createdAt DateTime @default(now())
+
+  @@unique([groupSlug, userId])
+}
+
+model GroupPost {
+  id        String   @id @default(cuid())
+
+  groupSlug String
+  userId    String
+  content   String
+
+  createdAt DateTime @default(now())
+}

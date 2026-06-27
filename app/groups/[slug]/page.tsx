@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { redirect, notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { createGroupPost } from "@/app/actions/groups";
 
 const groups = {
   entrepreneurs: {
@@ -19,7 +22,6 @@ const groups = {
       },
     ],
   },
-
   "career-changers": {
     name: "Career Changers Circle",
     description:
@@ -37,7 +39,6 @@ const groups = {
       },
     ],
   },
-
   "new-to-city": {
     name: "New-to-City Circle",
     description:
@@ -55,7 +56,6 @@ const groups = {
       },
     ],
   },
-
   "new-parents": {
     name: "New Parents Circle",
     description:
@@ -82,12 +82,56 @@ export default async function GroupDetailPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/");
+  }
+
   const { slug } = await params;
   const group = groups[slug as GroupSlug];
 
   if (!group) {
     notFound();
   }
+
+  const membership = await prisma.groupMember.findUnique({
+    where: {
+      groupSlug_userId: {
+        groupSlug: slug,
+        userId,
+      },
+    },
+  });
+
+  const memberProfiles = await prisma.profile.findMany({
+    where: {
+      clerkUserId: {
+        in: (
+          await prisma.groupMember.findMany({
+            where: { groupSlug: slug },
+          })
+        ).map((member) => member.userId),
+      },
+    },
+  });
+
+  const groupPosts = await prisma.groupPost.findMany({
+    where: {
+      groupSlug: slug,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const postAuthors = await prisma.profile.findMany({
+    where: {
+      clerkUserId: {
+        in: groupPosts.map((post) => post.userId),
+      },
+    },
+  });
 
   return (
     <main className="min-h-screen px-6 py-16">
@@ -108,20 +152,62 @@ export default async function GroupDetailPage({
           <section className="mb-8">
             <h2 className="text-2xl font-bold mb-3">Members</h2>
             <div className="flex flex-wrap gap-2">
-              {group.members.map((member) => (
-                <span
-                  key={member}
-                  className="rounded-full border border-gray-600 px-3 py-1 text-sm"
-                >
-                  {member}
-                </span>
-              ))}
+              {[...group.members, ...memberProfiles.map((p) => p.name)].map(
+                (member) => (
+                  <span
+                    key={member}
+                    className="rounded-full border border-gray-600 px-3 py-1 text-sm"
+                  >
+                    {member}
+                  </span>
+                )
+              )}
             </div>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold mb-3">Discussion</h2>
+
+            {membership ? (
+              <form action={createGroupPost} className="mb-6 space-y-3">
+                <input type="hidden" name="groupSlug" value={slug} />
+
+                <textarea
+                  name="content"
+                  placeholder="Share an update with the group..."
+                  className="w-full rounded-lg border border-gray-700 bg-transparent px-4 py-3 text-white"
+                  required
+                />
+
+                <button
+                  type="submit"
+                  className="rounded-lg bg-black px-6 py-3 text-white"
+                >
+                  Post
+                </button>
+              </form>
+            ) : (
+              <p className="mb-6 text-gray-400">
+                Join this group to participate in the discussion.
+              </p>
+            )}
+
             <div className="space-y-4">
+              {groupPosts.map((post) => {
+                const author = postAuthors.find(
+                  (profile) => profile.clerkUserId === post.userId
+                );
+
+                return (
+                  <div key={post.id} className="rounded-lg bg-gray-800 p-4">
+                    <p className="font-semibold mb-1">
+                      {author?.name ?? "Group Member"}
+                    </p>
+                    <p className="text-gray-300">{post.content}</p>
+                  </div>
+                );
+              })}
+
               {group.posts.map((post, index) => (
                 <div key={index} className="rounded-lg bg-gray-800 p-4">
                   <p className="font-semibold mb-1">{post.author}</p>
