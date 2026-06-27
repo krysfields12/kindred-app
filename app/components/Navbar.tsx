@@ -1,12 +1,22 @@
 import Link from "next/link";
-import {
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { Show, SignUpButton, UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
-export default function Navbar() {
+export default async function Navbar() {
+  const { userId } = await auth();
+
+  let unreadNotifications = 0;
+
+  if (userId) {
+    unreadNotifications = await prisma.notification.count({
+      where: {
+        userId,
+        isRead: false,
+      },
+    });
+  }
+
   return (
     <nav className="border-b border-gray-800 px-6 py-4">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -28,17 +38,25 @@ export default function Navbar() {
             <Link href="/groups">Groups</Link>
             <Link href="/requests">Requests</Link>
             <Link href="/connections">Connections</Link>
-            <Link href="/notifications">Notifications</Link>
+
+            <Link href="/notifications" className="flex items-center gap-2">
+              Notifications
+              {unreadNotifications > 0 && (
+                <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-2 text-xs font-bold text-white">
+                  {unreadNotifications}
+                </span>
+              )}
+            </Link>
           </Show>
         </div>
 
         <div className="flex items-center gap-4">
           <Show when="signed-out">
-              <SignUpButton forceRedirectUrl="/onboarding">
-                <button className="bg-black text-white px-4 py-2 rounded-lg">
-                  Get Started
-                </button>
-        </SignUpButton>
+            <SignUpButton forceRedirectUrl="/onboarding">
+              <button className="bg-black text-white px-4 py-2 rounded-lg">
+                Get Started
+              </button>
+            </SignUpButton>
           </Show>
 
           <Show when="signed-in">

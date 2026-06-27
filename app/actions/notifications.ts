@@ -3,6 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function openNotification(notificationId: string) {
   const { userId } = await auth();
@@ -30,6 +31,9 @@ export async function openNotification(notificationId: string) {
       isRead: true,
     },
   });
+
+  revalidatePath("/");
+  revalidatePath("/notifications");
 
   redirect(notification.link ?? "/notifications");
 }
