@@ -28,6 +28,7 @@ export default function Navbar() {
             <Link href="/groups">Groups</Link>
             <Link href="/requests">Requests</Link>
             <Link href="/connections">Connections</Link>
+            <Link href="/notifications">Notifications</Link>
           </Show>
         </div>
 

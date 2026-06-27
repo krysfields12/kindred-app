@@ -49,5 +49,29 @@ export async function createGroupPost(formData: FormData) {
     },
   });
 
+  const author = await prisma.profile.findUnique({
+  where: {
+    clerkUserId: userId,
+  },
+});
+
+const groupMembers = await prisma.groupMember.findMany({
+  where: {
+    groupSlug,
+    userId: {
+      not: userId,
+    },
+  },
+});
+
+await prisma.notification.createMany({
+  data: groupMembers.map((member) => ({
+    userId: member.userId,
+    type: "group_post",
+    message: `${author?.name ?? "Someone"} posted in your group.`,
+    link: `/groups/${groupSlug}`,
+  })),
+});
+
   revalidatePath(`/groups/${groupSlug}`);
 }

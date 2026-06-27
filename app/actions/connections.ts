@@ -36,6 +36,14 @@ export async function sendConnectionRequest(formData: FormData) {
       status: "pending",
     },
   });
+  await prisma.notification.create({
+    data: {
+      userId: receiverId,
+      type: "connection_request",
+      message: "Someone sent you a connection request.",
+      link: "/requests",
+    },
+ });
 }
 
 export async function acceptConnectionRequest(connectionId: string) {
