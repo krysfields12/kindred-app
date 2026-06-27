@@ -1,39 +1,36 @@
-"use client";
+import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
-import { useState } from "react";
+export default async function MessagesPage() {
+  const { userId } = await auth();
 
-const initialMessages = [
-  {
-    sender: "Jordan",
-    text: "Hey! I saw we’re both interested in entrepreneurship and accountability.",
-  },
-  {
-    sender: "You",
-    text: "Nice to meet you! I’m working on a startup idea too.",
-  },
-  {
-    sender: "Jordan",
-    text: "That’s awesome. I’d love to hear more about what you’re building.",
-  },
-];
-
-export default function MessagesPage() {
-  const [messages, setMessages] = useState(initialMessages);
-  const [newMessage, setNewMessage] = useState("");
-
-  function handleSend() {
-    if (!newMessage.trim()) return;
-
-    setMessages([
-      ...messages,
-      {
-        sender: "You",
-        text: newMessage,
-      },
-    ]);
-
-    setNewMessage("");
+  if (!userId) {
+    redirect("/");
   }
+
+  const connections = await prisma.connection.findMany({
+    where: {
+      status: "accepted",
+      OR: [{ senderId: userId }, { receiverId: userId }],
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  const otherUserIds = connections.map((connection) =>
+    connection.senderId === userId ? connection.receiverId : connection.senderId
+  );
+
+  const profiles = await prisma.profile.findMany({
+    where: {
+      clerkUserId: {
+        in: otherUserIds,
+      },
+    },
+  });
 
   return (
     <main className="min-h-screen px-6 py-16">
@@ -44,43 +41,30 @@ export default function MessagesPage() {
           Continue conversations with your Kindred connections.
         </p>
 
-        <div className="rounded-xl border border-gray-700 bg-neutral-900 p-6">
-          <h2 className="text-2xl font-bold mb-6">Jordan</h2>
-
+        {profiles.length === 0 ? (
+          <div className="rounded-xl border border-gray-700 bg-neutral-900 p-6">
+            <h2 className="text-2xl font-bold mb-2">No messages yet</h2>
+            <p className="text-gray-300">
+              Once you connect with someone, your conversation will appear here.
+            </p>
+          </div>
+        ) : (
           <div className="space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`max-w-md rounded-lg px-4 py-3 ${
-                  message.sender === "You"
-                    ? "ml-auto bg-black text-white"
-                    : "bg-gray-800 text-gray-100"
-                }`}
+            {profiles.map((profile) => (
+              <Link
+                key={profile.id}
+                href={`/messages/${profile.id}`}
+                className="block rounded-xl border border-gray-700 bg-neutral-900 p-6 hover:bg-neutral-800"
               >
-                <p className="text-sm font-semibold mb-1">{message.sender}</p>
-                <p>{message.text}</p>
-              </div>
+                <h2 className="text-2xl font-bold mb-1">{profile.name}</h2>
+                <p className="text-gray-400 mb-2">
+                  {profile.transition} • {profile.location}
+                </p>
+                <p className="text-gray-300">Open conversation</p>
+              </Link>
             ))}
           </div>
-
-          <div className="mt-6 flex gap-3">
-            <input
-              type="text"
-              placeholder="Write a message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-1 rounded-lg border border-gray-700 bg-transparent px-4 py-3"
-            />
-
-            <button
-              type="button"
-              onClick={handleSend}
-              className="bg-black text-white px-6 py-3 rounded-lg"
-            >
-              Send
-            </button>
-          </div>
-        </div>
+        )}
       </section>
     </main>
   );

@@ -68,9 +68,9 @@ export default async function MessageThreadPage({
   return (
     <main className="min-h-screen px-6 py-16">
       <section className="max-w-3xl mx-auto">
-        <Link href="/connections" className="underline">
-          ← Back to Connections
-        </Link>
+       <Link href="/messages" className="underline">
+        ← Back to Messages
+      </Link>
 
         <div className="mt-8 rounded-xl border border-gray-700 bg-neutral-900 p-6">
           <h1 className="text-3xl font-bold mb-2">{profile.name}</h1>
