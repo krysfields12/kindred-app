@@ -42,3 +42,13 @@ model Connection {
 
   @@unique([senderId, receiverId])
 }
+
+model Message {
+  id String @id @default(cuid())
+
+  senderId   String
+  receiverId String
+  content    String
+
+  createdAt DateTime @default(now())
+}

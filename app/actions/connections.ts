@@ -2,6 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function sendConnectionRequest(formData: FormData) {
   const { userId } = await auth();
@@ -35,4 +36,44 @@ export async function sendConnectionRequest(formData: FormData) {
       status: "pending",
     },
   });
+}
+
+export async function acceptConnectionRequest(connectionId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("You must be signed in.");
+  }
+
+  await prisma.connection.update({
+    where: {
+      id: connectionId,
+      receiverId: userId,
+    },
+    data: {
+      status: "accepted",
+    },
+  });
+
+  revalidatePath("/requests");
+}
+
+export async function declineConnectionRequest(connectionId: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("You must be signed in.");
+  }
+
+  await prisma.connection.update({
+    where: {
+      id: connectionId,
+      receiverId: userId,
+    },
+    data: {
+      status: "declined",
+    },
+  });
+
+  revalidatePath("/requests");
 }
