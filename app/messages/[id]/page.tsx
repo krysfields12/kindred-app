@@ -47,6 +47,17 @@ export default async function MessageThreadPage({
     redirect("/connections");
   }
 
+  await prisma.message.updateMany({
+    where: {
+      senderId: profile.clerkUserId,
+      receiverId: userId,
+      isRead: false,
+    },
+    data: {
+      isRead: true,
+    },
+});
+
   const messages = await prisma.message.findMany({
     where: {
       OR: [

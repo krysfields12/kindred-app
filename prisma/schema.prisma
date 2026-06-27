@@ -44,11 +44,14 @@ model Connection {
 }
 
 model Message {
-  id String @id @default(cuid())
+  id         String   @id @default(cuid())
 
   senderId   String
   receiverId String
+
   content    String
 
-  createdAt DateTime @default(now())
+  isRead     Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
 }

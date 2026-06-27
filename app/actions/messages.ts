@@ -24,6 +24,7 @@ export async function sendMessage(formData: FormData) {
       senderId: userId,
       receiverId,
       content,
+      isRead: false,
     },
   });
 
