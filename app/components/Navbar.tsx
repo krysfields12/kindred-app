@@ -26,17 +26,13 @@ export default async function Navbar() {
           </Link>
 
           <Show when="signed-out">
-            <Link href="/">Home</Link>
-            <Link href="/about">About</Link>
-            <Link href="/how-it-works">How it Works</Link>
+            <Link href="/#how-it-works">How it Works</Link>
           </Show>
 
           <Show when="signed-in">
-            <Link href="/">Home</Link>
             <Link href="/matches">Matches</Link>
             <Link href="/messages">Messages</Link>
             <Link href="/groups">Groups</Link>
-            <Link href="/requests">Requests</Link>
             <Link href="/connections">Connections</Link>
 
             <Link href="/notifications" className="flex items-center gap-2">
