@@ -72,6 +72,38 @@ await prisma.notification.createMany({
     link: `/groups/${groupSlug}`,
   })),
 });
+  revalidatePath(`/groups/${groupSlug}`);
+}
+
+export async function deleteGroupPost(formData: FormData) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("You must be signed in.");
+  }
+
+  const postId = formData.get("postId") as string;
+  const groupSlug = formData.get("groupSlug") as string;
+
+  const post = await prisma.groupPost.findUnique({
+    where: {
+      id: postId,
+    },
+  });
+
+  if (!post) {
+    throw new Error("Post not found.");
+  }
+
+  if (post.userId !== userId) {
+    throw new Error("You can only delete your own posts.");
+  }
+
+  await prisma.groupPost.delete({
+    where: {
+      id: postId,
+    },
+  });
 
   revalidatePath(`/groups/${groupSlug}`);
 }
