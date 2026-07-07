@@ -30,10 +30,10 @@ export default async function Navbar() {
           </Show>
 
           <Show when="signed-in">
-            <Link href="/matches">Matches</Link>
+            {/* <Link href="/matches">Matches</Link> */}
+            <Link href="/groups">My Circle</Link>
             <Link href="/messages">Messages</Link>
-            <Link href="/groups">Groups</Link>
-            <Link href="/connections">Connections</Link>
+            <Link href="/connections">Profile</Link>
 
             <Link href="/notifications" className="flex items-center gap-2">
               Notifications
