@@ -33,7 +33,7 @@ export default async function Navbar() {
             {/* <Link href="/matches">Matches</Link> */}
             <Link href="/groups">My Circle</Link>
             <Link href="/messages">Messages</Link>
-            <Link href="/connections">Profile</Link>
+            <Link href="/profile">My Profile</Link>
 
             <Link href="/notifications" className="flex items-center gap-2">
               Notifications

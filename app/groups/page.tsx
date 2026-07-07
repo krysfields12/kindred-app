@@ -106,6 +106,7 @@ export default async function GroupsPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {circles.map((circle) => {
             const joined = joinedCircleSlugs.includes(circle.slug);
+            const hasCircle = Boolean(joinedCircleSlugs.length);
 
             return (
               <div
@@ -183,7 +184,7 @@ export default async function GroupsPage() {
                         type="submit"
                         className="rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
                       >
-                        Join Circle
+                        {hasCircle ? "Switch Circle" : "Choose Circle"}
                       </button>
                     </form>
                   )}

@@ -2,10 +2,15 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { createGroupPost, deleteGroupPost } from "@/app/actions/groups";
+import {
+  createGroupPost,
+  deleteGroupPost,
+  joinGroup,
+} from "@/app/actions/groups";
 import {
   CalendarDays,
   Coffee,
+  Lock,
   MessageCircle,
   MoreHorizontal,
   Sparkles,
@@ -27,16 +32,6 @@ const groups = {
       time: "Saturday at 10:00 AM",
       location: "Roggenart • Columbia, MD",
     },
-    posts: [
-      {
-        author: "Jordan",
-        text: "I'm trying to stay consistent with building after work. Would love accountability.",
-      },
-      {
-        author: "Maya",
-        text: "I'm working on validating my idea before I build too much.",
-      },
-    ],
   },
   "career-changers": {
     name: "Career Pivot Circle",
@@ -49,16 +44,6 @@ const groups = {
       time: "Thursday at 6:00 PM",
       location: "Baltimore County Library • Towson, MD",
     },
-    posts: [
-      {
-        author: "Sarah",
-        text: "I'm practicing technical interviews and trying to stay motivated.",
-      },
-      {
-        author: "David",
-        text: "I'm rebuilding my resume and trying to figure out how to tell my career story.",
-      },
-    ],
   },
   "new-to-city": {
     name: "New-to-City Circle",
@@ -72,16 +57,6 @@ const groups = {
       time: "Saturday at 11:00 AM",
       location: "Patterson Park • Baltimore, MD",
     },
-    posts: [
-      {
-        author: "Mike",
-        text: "I moved recently and want to find more low-pressure ways to meet people locally.",
-      },
-      {
-        author: "Taylor",
-        text: "I'm looking for coffee shops, walking groups, and weekend activities.",
-      },
-    ],
   },
   "new-parents": {
     name: "New Parents Circle",
@@ -95,18 +70,25 @@ const groups = {
       time: "Sunday at 2:00 PM",
       location: "Lake Kittamaqundi • Columbia, MD",
     },
-    posts: [
-      {
-        author: "Emily",
-        text: "I'm trying to balance parenthood with still feeling like myself.",
-      },
-      {
-        author: "Marcus",
-        text: "I'd love to hear how others are managing sleep, routines, and social life.",
-      },
-    ],
   },
 };
+
+function formatTimeAgo(date: Date) {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+  if (seconds < 60) return "Just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+
+  return date.toLocaleDateString();
+}
 
 type GroupSlug = keyof typeof groups;
 
@@ -184,7 +166,7 @@ export default async function GroupDetailPage({
           <div className="mb-8">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-600 bg-emerald-950/40 px-3 py-1 text-sm text-emerald-300">
               <Sparkles size={14} />
-              Your Circle
+              {membership ? "Your Circle" : "Circle Preview"}
             </p>
 
             <h1 className="mb-3 text-4xl font-bold">{group.name}</h1>
@@ -242,15 +224,60 @@ export default async function GroupDetailPage({
               Members
             </h2>
 
-            <div className="flex flex-wrap gap-2">
-              {allMembers.map((member) => (
-                <span
-                  key={member}
-                  className="rounded-full border border-gray-600 px-3 py-1 text-sm"
-                >
-                  {member}
-                </span>
-              ))}
+            <div className="space-y-3">
+              {memberProfiles.length === 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {group.members.map((member) => (
+                    <span
+                      key={member}
+                      className="rounded-full border border-gray-600 px-3 py-1 text-sm"
+                    >
+                      {member}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                memberProfiles.map((profile) => {
+                  const isMe = profile.clerkUserId === userId;
+
+                  return (
+                    <div
+                      key={profile.id}
+                      className="flex items-center justify-between rounded-xl border border-gray-700 bg-neutral-950 p-4"
+                    >
+                      <div>
+                        <p className="font-semibold">
+                          {profile.name}
+                          {isMe ? " (You)" : ""}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {profile.transition ?? "Circle member"}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {!isMe && (
+                          <Link
+                            href={`/matches/${profile.id}`}
+                            className="rounded-lg border border-gray-600 px-4 py-2 text-sm transition hover:border-gray-400"
+                          >
+                            View Profile
+                          </Link>
+                        )}
+
+                        {membership && !isMe && (
+                          <Link
+                            href={`/messages/${profile.id}`}
+                            className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-gray-200"
+                          >
+                            Message
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
 
@@ -261,67 +288,117 @@ export default async function GroupDetailPage({
             </h2>
 
             {membership ? (
-              <form action={createGroupPost} className="mb-6 space-y-3">
-                <input type="hidden" name="groupSlug" value={slug} />
+              <>
+                <form action={createGroupPost} className="mb-6 space-y-3">
+                  <input type="hidden" name="groupSlug" value={slug} />
 
-                <textarea
-                  name="content"
-                  placeholder="Share a win, goal, or update with your circle..."
-                  className="w-full rounded-lg border border-gray-700 bg-transparent px-4 py-3 text-white"
-                  required
-                />
+                  <textarea
+                    name="content"
+                    placeholder="Share a win, goal, or update with your circle..."
+                    className="w-full rounded-lg border border-gray-700 bg-transparent px-4 py-3 text-white"
+                    required
+                  />
 
-                <button
-                  type="submit"
-                  className="rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
-                >
-                  Post Update
-                </button>
-              </form>
-            ) : (
-              <p className="mb-6 text-gray-400">
-                Join this circle to participate in the discussion.
-              </p>
-            )}
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
+                  >
+                    Post Update
+                  </button>
+                </form>
 
-            <div className="space-y-4">
-            {groupPosts.map((post) => {
-                const author = postAuthors.find(
-                  (profile) => profile.clerkUserId === post.userId
-                );
-                const isMyPost = post.userId === userId;
-                return (
-                  <div key={post.id} className="rounded-xl bg-gray-800 p-4">
-                    <div className="mb-1 flex items-start justify-between gap-4">
-                      <p className="font-semibold">
-                        {author?.name ?? "Circle Member"}
-                      </p>
-                      {isMyPost && (
-                        <details className="relative">
-                          <summary className="list-none cursor-pointer rounded-full p-1 hover:bg-gray-700">
-                            <MoreHorizontal size={18} />
-                          </summary>
-                          <div className="absolute right-0 z-10 mt-2 w-32 rounded-lg border border-gray-700 bg-neutral-950 p-2 shadow-lg">
-                            <form action={deleteGroupPost}>
-                              <input type="hidden" name="postId" value={post.id} />
-                              <input type="hidden" name="groupSlug" value={slug} />
-                              <button
-                                type="submit"
-                                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-400 hover:bg-gray-800"
-                              >
-                                <Trash2 size={14} />
-                                Delete
-                              </button>
-                            </form>
+                <div className="space-y-4">
+                  {groupPosts.map((post) => {
+                    const author = postAuthors.find(
+                      (profile) => profile.clerkUserId === post.userId
+                    );
+
+                    const isMyPost = post.userId === userId;
+
+                    return (
+                      <div
+                        key={post.id}
+                        className="rounded-xl bg-gray-800 p-4"
+                      >
+                        <div className="mb-1 flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-semibold">
+                              {author?.name ?? "Circle Member"}
+                            </p>
+
+                            <p className="text-xs text-gray-400">
+                              {formatTimeAgo(post.createdAt)}
+                            </p>
                           </div>
-                        </details>
-                      )}
-                    </div>
-                    <p className="text-gray-300">{post.content}</p>
-                  </div>
-                );
-              })}
-            </div>
+
+                          {isMyPost && (
+                            <details className="relative">
+                              <summary className="list-none cursor-pointer rounded-full p-1 hover:bg-gray-700">
+                                <MoreHorizontal size={18} />
+                              </summary>
+
+                              <div className="absolute right-0 z-10 mt-2 w-32 rounded-lg border border-gray-700 bg-neutral-950 p-2 shadow-lg">
+                                <form action={deleteGroupPost}>
+                                  <input
+                                    type="hidden"
+                                    name="postId"
+                                    value={post.id}
+                                  />
+
+                                  <input
+                                    type="hidden"
+                                    name="groupSlug"
+                                    value={slug}
+                                  />
+
+                                  <button
+                                    type="submit"
+                                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-400 hover:bg-gray-800"
+                                  >
+                                    <Trash2 size={14} />
+                                    Delete
+                                  </button>
+                                </form>
+                              </div>
+                            </details>
+                          )}
+                        </div>
+
+                        <p className="text-gray-300">{post.content}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div className="rounded-xl border border-gray-700 bg-neutral-950 p-6">
+                <div className="mb-3 flex items-center gap-2 text-gray-200">
+                  <Lock size={18} />
+                  <h3 className="text-xl font-bold">
+                    Join this circle to participate
+                  </h3>
+                </div>
+
+                <p className="text-gray-300">
+                  Members share weekly goals, wins, updates, and accountability
+                  check-ins here.
+                </p>
+
+                <form
+                  action={async () => {
+                    "use server";
+                    await joinGroup(slug);
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className="mt-5 rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
+                  >
+                    Join Circle
+                  </button>
+                </form>
+              </div>
+            )}
           </section>
         </div>
       </section>

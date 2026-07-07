@@ -11,15 +11,14 @@ export async function joinGroup(groupSlug: string) {
     throw new Error("You must be signed in.");
   }
 
-  await prisma.groupMember.upsert({
+  await prisma.groupMember.deleteMany({
     where: {
-      groupSlug_userId: {
-        groupSlug,
-        userId,
-      },
+      userId,
     },
-    update: {},
-    create: {
+  });
+
+  await prisma.groupMember.create({
+    data: {
       groupSlug,
       userId,
     },
