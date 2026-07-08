@@ -31,12 +31,14 @@ export default async function EditProfilePage() {
           </p>
 
           <h1 className="mb-3 text-4xl font-bold">
-            {profile ? "Update your Kindred profile" : "Create your Kindred profile"}
+            {profile
+              ? "Update your Kindred profile"
+              : "Create your Kindred profile"}
           </h1>
 
           <p className="mb-8 text-gray-300">
-            Tell Kindred about your current journey so we can recommend the right
-            circle and help others understand how to connect with you.
+            Tell Kindred about your current journey so we can recommend the
+            right circle and help others understand how to connect with you.
           </p>
 
           <form action={saveProfile} className="space-y-6">
@@ -63,17 +65,21 @@ export default async function EditProfilePage() {
               <input
                 name="location"
                 type="text"
-                placeholder="City, State"
+                placeholder="City, State — example: Columbia, MD"
                 required
                 defaultValue={profile?.location ?? ""}
                 className="w-full rounded-lg border border-gray-700 bg-neutral-950 px-4 py-3 text-white"
               />
+              <p className="mt-2 text-sm text-gray-400">
+                Used to recommend circles close enough for possible in-person
+                meetups.
+              </p>
             </div>
 
             <div>
               <label className="mb-2 flex items-center gap-2 font-semibold">
                 <Target size={18} />
-                Life Transition
+                What journey are you on right now?
               </label>
               <select
                 name="lifeTransition"
@@ -94,7 +100,7 @@ export default async function EditProfilePage() {
             <div>
               <label className="mb-2 flex items-center gap-2 font-semibold">
                 <Target size={18} />
-                Goals
+                What are you hoping to accomplish?
               </label>
               <input
                 name="goals"
@@ -112,7 +118,7 @@ export default async function EditProfilePage() {
             <div>
               <label className="mb-2 flex items-center gap-2 font-semibold">
                 <Heart size={18} />
-                Interests
+                What are you interested in?
               </label>
               <input
                 name="interests"
@@ -138,20 +144,20 @@ export default async function EditProfilePage() {
               />
             </div>
 
-            <div className="flex gap-3 border-t border-gray-800 pt-6">
-              <button
-                type="submit"
-                className="rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
-              >
-                {profile ? "Save Changes" : "Save Profile"}
-              </button>
-
+            <div className="flex justify-end gap-3 border-t border-gray-800 pt-6">
               <Link
                 href="/profile"
                 className="rounded-lg border border-gray-600 px-6 py-3 transition hover:border-gray-400"
               >
                 Cancel
               </Link>
+
+              <button
+                type="submit"
+                className="rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-gray-200"
+              >
+                {profile ? "Save Changes" : "Save Profile"}
+              </button>
             </div>
           </form>
         </div>
