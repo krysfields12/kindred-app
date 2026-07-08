@@ -41,5 +41,5 @@ await prisma.profile.upsert({
   },
 });
 
-  redirect("/matches");
+  redirect("/profile");
 }
